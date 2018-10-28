@@ -3,6 +3,7 @@ using ScintillaNET;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Drawing;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -13,8 +14,9 @@ namespace MySqlSideKicks.Win
 {
     public partial class MainForm : Form
     {
-        private Routine _currentRoutine;
+        private MySqlConnection _connection;
 
+        private Routine _currentRoutine;        
         private readonly Stack<Navigation> _navigationStack = new Stack<Navigation>();
         private readonly List<Routine> _routines = new List<Routine>();
 
@@ -51,10 +53,12 @@ namespace MySqlSideKicks.Win
             }
         }
 
-        public MainForm()
+        public MainForm(MySqlConnection connection)
         {
             InitializeComponent();
             InitializeSyntaxHighlighting();
+
+            _connection = connection;
         }
 
         private void InitializeSyntaxHighlighting()
@@ -143,15 +147,14 @@ namespace MySqlSideKicks.Win
         }
 
         private async Task LoadRoutines()
-        {
-            var connection = new MySqlConnection(Properties.Settings.Default.ConnectionString);
-            var command = connection.CreateCommand();
+        {            
+            var command = _connection.CreateCommand();
 
             try
             {
-                connection.Open();
+                _connection.Open();
                 command.CommandText =
-                    "SELECT ROUTINE_SCHEMA, ROUTINE_NAME, ROUTINE_TYPE, ROUTINE_DEFINITION FROM INFORMATION_SCHEMA.ROUTINES ORDER BY ROUTINE_SCHEMA, ROUTINE_NAME";
+                    "SELECT ROUTINE_SCHEMA, ROUTINE_NAME, ROUTINE_TYPE, ROUTINE_DEFINITION FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_SCHEMA NOT IN ('sys') ORDER BY ROUTINE_SCHEMA, ROUTINE_NAME";
                 using (var reader = await command.ExecuteReaderAsync())
                 {
                     while (await reader.ReadAsync())
@@ -174,9 +177,9 @@ namespace MySqlSideKicks.Win
             }
             finally
             {
-                if (connection.State == ConnectionState.Open)
+                if (_connection.State == ConnectionState.Open)
                 {
-                    connection.Close();
+                    _connection.Close();
                 }
             }
         }
@@ -188,12 +191,11 @@ namespace MySqlSideKicks.Win
                 return;
             }
 
-            var connection = new MySqlConnection(Properties.Settings.Default.ConnectionString);
-            var command = connection.CreateCommand();
+            var command = _connection.CreateCommand();
 
             try
             {
-                await connection.OpenAsync();
+                await _connection.OpenAsync();
 
                 command.CommandText = $"SHOW CREATE {routine.Type} `{routine.Schema}`.`{routine.Name}`";
 
@@ -213,9 +215,9 @@ namespace MySqlSideKicks.Win
             }
             finally
             {
-                if (connection.State == ConnectionState.Open)
+                if (_connection.State == ConnectionState.Open)
                 {
-                    await connection.CloseAsync();
+                    await _connection.CloseAsync();
                 }
             }
         }
@@ -332,6 +334,11 @@ namespace MySqlSideKicks.Win
         private async void previousButton_Click(object sender, EventArgs e)
         {
             await GoToPrevious();
+        }
+
+        private void MainForm_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            _connection.Dispose();
         }
     }
 }

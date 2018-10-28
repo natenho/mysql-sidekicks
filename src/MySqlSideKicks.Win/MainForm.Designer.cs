@@ -157,6 +157,7 @@
             this.KeyPreview = true;
             this.Name = "MainForm";
             this.Text = "MySqlSideKicks";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.MainForm_FormClosed);
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.MainForm_KeyDown);
             this.splitContainer.Panel1.ResumeLayout(false);
