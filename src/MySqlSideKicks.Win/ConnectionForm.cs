@@ -69,6 +69,11 @@ namespace MySqlSideKicks.Win
                 var section = config.GetSection("connectionStrings") as ConnectionStringsSection;
                 var lastConnectionStringSetting = section.ConnectionStrings["lastUsed"];
 
+                if(lastConnectionStringSetting == null)
+                {
+                    return;
+                }
+
                 var connectionStringBuilder = new MySqlConnectionStringBuilder(lastConnectionStringSetting.ConnectionString);
 
                 hostNameTextBox.Text = connectionStringBuilder.Server;
