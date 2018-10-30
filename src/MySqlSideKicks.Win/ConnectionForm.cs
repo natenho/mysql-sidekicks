@@ -17,8 +17,7 @@ namespace MySqlSideKicks.Win
             var connection = CreateConnection();
             var sessionForm = new MainForm(connection) { Text = $"{userNameTextBox.Text}@{hostNameTextBox.Text}:{portTextBox.Text}" };
 
-            sessionForm.Show();
-            Hide();
+            sessionForm.Show(this);            
         }
 
         private MySqlConnection CreateConnection()
@@ -69,7 +68,7 @@ namespace MySqlSideKicks.Win
                 var section = config.GetSection("connectionStrings") as ConnectionStringsSection;
                 var lastConnectionStringSetting = section.ConnectionStrings["lastUsed"];
 
-                if(lastConnectionStringSetting == null)
+                if (lastConnectionStringSetting == null)
                 {
                     return;
                 }
@@ -94,7 +93,17 @@ namespace MySqlSideKicks.Win
             {
                 var config = ConfigurationManager.OpenExeConfiguration(Application.ExecutablePath);
                 var section = config.GetSection("connectionStrings") as ConnectionStringsSection;
-                section.ConnectionStrings.Add(new ConnectionStringSettings("lastUsed", connectionString));
+
+                if (section.ConnectionStrings["lastUsed"] == null)
+                {
+                    var settings = new ConnectionStringSettings("lastUsed", connectionString);
+                    section.ConnectionStrings.Add(settings);
+                }
+                else
+                {
+                    section.ConnectionStrings["lastUsed"].ConnectionString = connectionString;
+                }
+
                 //section.SectionInformation.ProtectSection("RsaProtectedConfigurationProvider");
                 section.SectionInformation.ForceSave = true;
                 config.Save(ConfigurationSaveMode.Modified);
