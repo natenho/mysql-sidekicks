@@ -3,7 +3,6 @@ using ScintillaNET;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.Common;
 using System.Drawing;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -16,7 +15,7 @@ namespace MySqlSideKicks.Win
     {
         private MySqlConnection _connection;
 
-        private Routine _currentRoutine;        
+        private Routine _currentRoutine;
         private readonly Stack<Navigation> _navigationStack = new Stack<Navigation>();
         private readonly List<Routine> _routines = new List<Routine>();
 
@@ -24,33 +23,6 @@ namespace MySqlSideKicks.Win
         {
             public Routine Routine { get; set; }
             public int Position { get; set; }
-        }
-
-        private class Routine
-        {
-            public string Schema { get; set; }
-            public string Name { get; set; }
-            public string Type { get; set; }
-            public string Definition { get; set; }
-
-            public override string ToString()
-            {
-                return $"{Schema}.{Name}";
-            }
-
-            public bool MatchesIdentifier(string identifier, string defaultSchema = "")
-            {
-                var sanitizedIdentifier = SanitizeIdentifier(identifier);
-                var matchesSameSchema = Schema.EqualsIgnoreCase(defaultSchema) && Name.EqualsIgnoreCase(sanitizedIdentifier);
-                var matchesAnotherSchema = sanitizedIdentifier.EqualsIgnoreCase(ToString());
-                return matchesSameSchema || matchesAnotherSchema;
-            }
-
-            private static string SanitizeIdentifier(string identifier)
-            {
-                return identifier.Replace("`", string.Empty)
-                    .Trim();
-            }
         }
 
         public MainForm(MySqlConnection connection)
@@ -114,74 +86,33 @@ namespace MySqlSideKicks.Win
             // User2 = 5
             codeScintilla.SetKeywords(5, @"call ");
         }
-        
+
         private async Task RefreshObjectExplorer()
         {
-            if (_routines.Count == 0)
-            {
-                await LoadRoutines();
-            }
+            Cursor = Cursors.WaitCursor;
 
-            var search = Regex.Escape(searchBox.Text);
+            objectExplorerListBox.SuspendLayout();
+            objectExplorerListBox.Items.Clear();
 
-            var filtered = new object[] { };
+            var routineRepository = new RoutineRepository(_connection);
+
+            IEnumerable<Routine> filtered = null;
 
             if (filterByName.Checked)
             {
-                filtered = _routines.Where(r => r.MatchesIdentifier(searchBox.Text, _currentRoutine?.Schema) || Regex.IsMatch(r.ToString(), search, RegexOptions.IgnoreCase))
-                    .Cast<object>()
-                    .ToArray();
+                filtered = await routineRepository.SearchByName(searchBox.Text);
             }
 
             if (filterByDefinition.Checked)
             {
-                filtered = _routines.Where(r => Regex.IsMatch(r.Definition, search, RegexOptions.IgnoreCase))
-                    .Cast<object>()
-                    .ToArray();
+                filtered = await routineRepository.SearchByDefinition(searchBox.Text);
             }
 
-            objectExplorerListBox.SuspendLayout();
-            objectExplorerListBox.Items.Clear();
-            objectExplorerListBox.Items.AddRange(filtered);
+            objectExplorerListBox.Items.AddRange(filtered?.Cast<object>().ToArray());
+
             objectExplorerListBox.ResumeLayout();
-        }
 
-        private async Task LoadRoutines()
-        {            
-            var command = _connection.CreateCommand();
-
-            try
-            {
-                _connection.Open();
-                command.CommandText =
-                    "SELECT ROUTINE_SCHEMA, ROUTINE_NAME, ROUTINE_TYPE, ROUTINE_DEFINITION FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_SCHEMA NOT IN ('sys') ORDER BY ROUTINE_SCHEMA, ROUTINE_NAME";
-                using (var reader = await command.ExecuteReaderAsync())
-                {
-                    while (await reader.ReadAsync())
-                    {
-                        var routine = new Routine()
-                        {
-                            Schema = reader["ROUTINE_SCHEMA"]
-                                .ToString(),
-                            Name = reader["ROUTINE_NAME"]
-                                .ToString(),
-                            Type = reader["ROUTINE_TYPE"]
-                                .ToString(),
-                            Definition = reader["ROUTINE_DEFINITION"]
-                                .ToString()
-                        };
-
-                        _routines.Add(routine);
-                    }
-                }
-            }
-            finally
-            {
-                if (_connection.State == ConnectionState.Open)
-                {
-                    _connection.Close();
-                }
-            }
+            Cursor = Cursors.Default;
         }
 
         private async Task OpenRoutine(Routine routine)
@@ -248,14 +179,14 @@ namespace MySqlSideKicks.Win
                 codeScintilla.SuspendLayout();
 
                 await OpenRoutine(foundRoutine);
-                
+
                 codeScintilla.SelectionStart = 0;
                 codeScintilla.SelectionEnd = 0;
 
                 codeScintilla.ResumeLayout();
             }
         }
-        
+
         private async Task GoToPrevious()
         {
             if (_navigationStack.Count == 0)
@@ -268,10 +199,10 @@ namespace MySqlSideKicks.Win
             codeScintilla.SuspendLayout();
 
             await OpenRoutine(navigation.Routine);
-            
+
             codeScintilla.SelectionStart = navigation.Position;
             codeScintilla.SelectionEnd = navigation.Position;
-            
+
             codeScintilla.ResumeLayout();
 
             previousButton.Enabled = _navigationStack.Count > 0;
@@ -296,7 +227,7 @@ namespace MySqlSideKicks.Win
                 await GoToPrevious();
             }
         }
-        
+
         private async void SearchFired(object sender, EventArgs e)
         {
             await RefreshObjectExplorer();
@@ -307,7 +238,7 @@ namespace MySqlSideKicks.Win
             _navigationStack.Clear();
             await OpenRoutine(objectExplorerListBox.SelectedItem as Routine);
         }
-        
+
         private void objectExplorerListBox_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (char.IsLetterOrDigit(e.KeyChar))
@@ -316,7 +247,7 @@ namespace MySqlSideKicks.Win
                 searchBox.AppendText(e.KeyChar.ToString());
             }
         }
-        
+
         private async void codeScintilla_DoubleClick(object sender, DoubleClickEventArgs e)
         {
             await TryNavigate();
@@ -330,7 +261,7 @@ namespace MySqlSideKicks.Win
                 e.Handled = true;
             }
         }
-  
+
         private async void previousButton_Click(object sender, EventArgs e)
         {
             await GoToPrevious();
