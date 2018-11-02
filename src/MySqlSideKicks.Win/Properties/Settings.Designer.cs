@@ -22,5 +22,29 @@ namespace MySqlSideKicks.Win.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string ConnectionStrings {
+            get {
+                return ((string)(this["ConnectionStrings"]));
+            }
+            set {
+                this["ConnectionStrings"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string LastUsed {
+            get {
+                return ((string)(this["LastUsed"]));
+            }
+            set {
+                this["LastUsed"] = value;
+            }
+        }
     }
 }

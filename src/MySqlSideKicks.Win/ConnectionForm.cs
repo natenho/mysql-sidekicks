@@ -1,26 +1,33 @@
 ﻿using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 using System;
-using System.Configuration;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace MySqlSideKicks.Win
 {
     public partial class ConnectionForm : Form
     {
+        private SortedDictionary<string, string> _connections = new SortedDictionary<string, string>();
+
+        private string _currentConnection;
+
         public ConnectionForm()
         {
             InitializeComponent();
         }
 
-        private void connectButton_Click(object sender, EventArgs e)
+        private MySqlConnection CreateMySqlConnection()
         {
-            var connection = CreateConnection();
-            var sessionForm = new MainForm(connection) { Text = $"{userNameTextBox.Text}@{hostNameTextBox.Text}:{portTextBox.Text}" };
+            var connectionString = CreateConnectionString();
 
-            sessionForm.Show(this);            
+            StoreLastUsedConnectionString(nameTextBox.Text, connectionString);
+
+            return new MySqlConnection(connectionString);
         }
 
-        private MySqlConnection CreateConnection()
+        private string CreateConnectionString()
         {
             var connectionStringBuilder = new MySqlConnectionStringBuilder
             {
@@ -37,86 +44,217 @@ namespace MySqlSideKicks.Win
                 connectionStringBuilder.Port = port;
             }
 
-            StoreConnection(connectionStringBuilder.ConnectionString);
-
-            return new MySqlConnection(connectionStringBuilder.ConnectionString);
+            return connectionStringBuilder.ConnectionString;
         }
 
-        private async void testConnectionButton_Click(object sender, EventArgs e)
+        private void OpenConnection(string name, string connectionString)
         {
             try
             {
-                using (var connection = CreateConnection())
-                {
-                    if (await connection.Test())
-                    {
-                        MessageBox.Show("Connection succeeded.");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
+                var connectionStringBuilder = new MySqlConnectionStringBuilder(connectionString);
 
-        private void RestoreLastConnection()
-        {
-            try
-            {
-                var config = ConfigurationManager.OpenExeConfiguration(Application.ExecutablePath);
-                var section = config.GetSection("connectionStrings") as ConnectionStringsSection;
-                var lastConnectionStringSetting = section.ConnectionStrings["lastUsed"];
-
-                if (lastConnectionStringSetting == null)
-                {
-                    return;
-                }
-
-                var connectionStringBuilder = new MySqlConnectionStringBuilder(lastConnectionStringSetting.ConnectionString);
-
+                nameTextBox.Text = name;
                 hostNameTextBox.Text = connectionStringBuilder.Server;
                 portTextBox.Text = connectionStringBuilder.Port.ToString();
                 userNameTextBox.Text = connectionStringBuilder.UserID;
                 passwordTextBox.Text = connectionStringBuilder.Password;
                 defaultSchemaTextBox.Text = connectionStringBuilder.Database;
+
+                _currentConnection = name;
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString());
+                ShowError(ex.ToString());
             }
         }
 
-        private void StoreConnection(string connectionString)
+        private void StoreLastUsedConnectionString(string name, string connectionString)
         {
             try
             {
-                var config = ConfigurationManager.OpenExeConfiguration(Application.ExecutablePath);
-                var section = config.GetSection("connectionStrings") as ConnectionStringsSection;
+                Properties.Settings.Default.LastUsed = connectionString.ToEncryptedBase64();
+                Properties.Settings.Default.Save();
 
-                if (section.ConnectionStrings["lastUsed"] == null)
+                if (!string.IsNullOrWhiteSpace(name))
                 {
-                    var settings = new ConnectionStringSettings("lastUsed", connectionString);
-                    section.ConnectionStrings.Add(settings);
+                    _connections.AddOrUpdate(name, connectionString);
+                    SaveConnections();
                 }
-                else
-                {
-                    section.ConnectionStrings["lastUsed"].ConnectionString = connectionString;
-                }
-
-                //section.SectionInformation.ProtectSection("RsaProtectedConfigurationProvider");
-                section.SectionInformation.ForceSave = true;
-                config.Save(ConfigurationSaveMode.Modified);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString());
+                ShowError(ex.ToString());
             }
+        }
+
+        private void LoadConnections()
+        {
+            string json = Properties.Settings.Default.ConnectionStrings;
+
+            connectionList.DataSource = null;
+
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return;
+            }
+
+            _connections = JsonConvert.DeserializeObject<SortedDictionary<string, string>>(json.DecryptToString());
+
+            if (_connections.Count == 0)
+            {
+                return;
+            }
+
+            connectionList.DataSource = new BindingSource(_connections, null);
+            connectionList.DisplayMember = "Key";
+            connectionList.ValueMember = "Value";
+        }
+
+        private void SaveConnections()
+        {
+            var json = JsonConvert.SerializeObject(_connections);
+            Properties.Settings.Default.ConnectionStrings = json.ToEncryptedBase64();
+            Properties.Settings.Default.Save();
+        }
+
+        private void SaveCurrentConnection()
+        {
+            if (string.IsNullOrWhiteSpace(nameTextBox.Text))
+            {
+                ShowInformation("Missing conneciton name.");
+                return;
+            }
+
+            _connections.AddOrUpdate(nameTextBox.Text, CreateConnectionString());
+
+            SaveConnections();
+            LoadConnections();
+
+            connectionList.SelectedItem = _connections.FirstOrDefault(i => i.Key == nameTextBox.Text);
+        }
+
+        private void ShowInformation(string text)
+        {
+            MessageBox.Show(text, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private void ShowError(string text)
+        {
+            MessageBox.Show(text, Application.ProductName, MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
 
         private void ConnectionForm_Load(object sender, EventArgs e)
         {
-            RestoreLastConnection();
+            OpenConnection(string.Empty, Properties.Settings.Default.LastUsed.DecryptToString());
+            LoadConnections();
+        }
+
+        private void connectionList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (connectionList.Items.Count == 0)
+            {
+                return;
+            }
+
+            if (connectionList.SelectedItem is KeyValuePair<string, string> selectedItem)
+            {
+                OpenConnection(selectedItem.Key, selectedItem.Value);
+            }
+        }
+
+        private void addButton_Click(object sender, EventArgs e)
+        {
+            SaveCurrentConnection();
+        }
+
+        private void deleteButton_Click(object sender, EventArgs e)
+        {
+            if (connectionList.SelectedItem == null)
+            {
+                return;
+            }
+
+            var selectedItem = (KeyValuePair<string, string>)connectionList.SelectedItem;
+
+            _connections.Remove(selectedItem.Key);
+
+            SaveConnections();
+            LoadConnections();
+        }
+
+        private void duplicateButton_Click(object sender, EventArgs e)
+        {
+            if (connectionList.SelectedItem == null)
+            {
+                return;
+            }
+
+            var selectedItem = (KeyValuePair<string, string>)connectionList.SelectedItem;
+
+            string generatedName = null;
+            int index = 0;
+
+            do
+            {
+                generatedName = $"{selectedItem.Key}{++index:00}";
+            }
+            while (_connections.ContainsKey(generatedName));
+
+            _connections.Add(generatedName, selectedItem.Value);
+
+            SaveConnections();
+            LoadConnections();
+        }
+
+        private async void testConnectionButton_Click(object sender, EventArgs e)
+        {
+            bool succeeded;
+            string message;
+
+            Cursor = Cursors.WaitCursor;
+            progressBar.Visible = true;
+
+            try
+            {
+                using (var connection = CreateMySqlConnection())
+                {
+                    await connection.Test();
+                }
+
+                succeeded = true;
+                message = "Connection succeeded.";
+            }
+            catch (Exception ex)
+            {
+                succeeded = false;
+                message = ex.Message;
+            }
+
+            progressBar.Visible = false;
+            Cursor = Cursors.Default;
+
+            if (succeeded)
+            {
+                ShowInformation(message);
+            }
+            else
+            {
+                ShowError(message);
+            }
+        }
+
+        private void connectButton_Click(object sender, EventArgs e)
+        {
+            var connection = CreateMySqlConnection();
+            var sessionForm = new MainForm(connection) { Text = $"{nameTextBox.Text} - {userNameTextBox.Text}@{hostNameTextBox.Text}:{portTextBox.Text}" };
+
+            sessionForm.Show(this);
+        }
+
+        private void textBox_Validated(object sender, EventArgs e)
+        {
+            _connections.Remove(_currentConnection);
+            SaveCurrentConnection();
         }
     }
 }

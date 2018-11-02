@@ -34,13 +34,16 @@
             this.label3 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.defaultSchemaTextBox = new System.Windows.Forms.TextBox();
             this.passwordTextBox = new System.Windows.Forms.TextBox();
             this.userNameTextBox = new System.Windows.Forms.TextBox();
+            this.nameTextBox = new System.Windows.Forms.TextBox();
             this.portTextBox = new System.Windows.Forms.TextBox();
             this.hostNameTextBox = new System.Windows.Forms.TextBox();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.progressBar = new System.Windows.Forms.ProgressBar();
             this.testConnectionButton = new System.Windows.Forms.Button();
             this.connectButton = new System.Windows.Forms.Button();
             this.duplicateButton = new System.Windows.Forms.Button();
@@ -55,12 +58,15 @@
             // 
             // connectionList
             // 
-            this.connectionList.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.connectionList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.connectionList.FormattingEnabled = true;
-            this.connectionList.Location = new System.Drawing.Point(0, 0);
+            this.connectionList.Location = new System.Drawing.Point(9, 8);
             this.connectionList.Name = "connectionList";
-            this.connectionList.Size = new System.Drawing.Size(103, 210);
+            this.connectionList.Size = new System.Drawing.Size(180, 199);
             this.connectionList.TabIndex = 0;
+            this.connectionList.SelectedIndexChanged += new System.EventHandler(this.connectionList_SelectedIndexChanged);
             // 
             // splitContainer1
             // 
@@ -80,14 +86,16 @@
             this.splitContainer1.Panel2.Controls.Add(this.label3);
             this.splitContainer1.Panel2.Controls.Add(this.label5);
             this.splitContainer1.Panel2.Controls.Add(this.label2);
+            this.splitContainer1.Panel2.Controls.Add(this.label6);
             this.splitContainer1.Panel2.Controls.Add(this.label1);
             this.splitContainer1.Panel2.Controls.Add(this.defaultSchemaTextBox);
             this.splitContainer1.Panel2.Controls.Add(this.passwordTextBox);
             this.splitContainer1.Panel2.Controls.Add(this.userNameTextBox);
+            this.splitContainer1.Panel2.Controls.Add(this.nameTextBox);
             this.splitContainer1.Panel2.Controls.Add(this.portTextBox);
             this.splitContainer1.Panel2.Controls.Add(this.hostNameTextBox);
-            this.splitContainer1.Size = new System.Drawing.Size(484, 210);
-            this.splitContainer1.SplitterDistance = 103;
+            this.splitContainer1.Size = new System.Drawing.Size(584, 210);
+            this.splitContainer1.SplitterDistance = 197;
             this.splitContainer1.TabIndex = 1;
             this.splitContainer1.TabStop = false;
             // 
@@ -127,6 +135,15 @@
             this.label2.TabIndex = 5;
             this.label2.Text = "Username:";
             // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(13, 19);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(95, 13);
+            this.label6.TabIndex = 5;
+            this.label6.Text = "Connection Name:";
+            // 
             // label1
             // 
             this.label1.AutoSize = true;
@@ -142,6 +159,7 @@
             this.defaultSchemaTextBox.Name = "defaultSchemaTextBox";
             this.defaultSchemaTextBox.Size = new System.Drawing.Size(100, 20);
             this.defaultSchemaTextBox.TabIndex = 4;
+            this.defaultSchemaTextBox.Validated += new System.EventHandler(this.textBox_Validated);
             // 
             // passwordTextBox
             // 
@@ -150,6 +168,7 @@
             this.passwordTextBox.Size = new System.Drawing.Size(100, 20);
             this.passwordTextBox.TabIndex = 3;
             this.passwordTextBox.UseSystemPasswordChar = true;
+            this.passwordTextBox.Validated += new System.EventHandler(this.textBox_Validated);
             // 
             // userNameTextBox
             // 
@@ -158,6 +177,15 @@
             this.userNameTextBox.Size = new System.Drawing.Size(100, 20);
             this.userNameTextBox.TabIndex = 2;
             this.userNameTextBox.Text = "root";
+            this.userNameTextBox.Validated += new System.EventHandler(this.textBox_Validated);
+            // 
+            // nameTextBox
+            // 
+            this.nameTextBox.Location = new System.Drawing.Point(114, 15);
+            this.nameTextBox.Name = "nameTextBox";
+            this.nameTextBox.Size = new System.Drawing.Size(254, 20);
+            this.nameTextBox.TabIndex = 0;
+            this.nameTextBox.Validated += new System.EventHandler(this.textBox_Validated);
             // 
             // portTextBox
             // 
@@ -166,6 +194,7 @@
             this.portTextBox.Size = new System.Drawing.Size(100, 20);
             this.portTextBox.TabIndex = 1;
             this.portTextBox.Text = "3306";
+            this.portTextBox.Validated += new System.EventHandler(this.textBox_Validated);
             // 
             // hostNameTextBox
             // 
@@ -174,9 +203,11 @@
             this.hostNameTextBox.Size = new System.Drawing.Size(100, 20);
             this.hostNameTextBox.TabIndex = 0;
             this.hostNameTextBox.Text = "127.0.0.1";
+            this.hostNameTextBox.Validated += new System.EventHandler(this.textBox_Validated);
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.progressBar);
             this.panel1.Controls.Add(this.testConnectionButton);
             this.panel1.Controls.Add(this.connectButton);
             this.panel1.Controls.Add(this.duplicateButton);
@@ -185,13 +216,25 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.panel1.Location = new System.Drawing.Point(0, 216);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(484, 45);
+            this.panel1.Size = new System.Drawing.Size(584, 45);
             this.panel1.TabIndex = 6;
+            // 
+            // progressBar
+            // 
+            this.progressBar.Dock = System.Windows.Forms.DockStyle.Top;
+            this.progressBar.Location = new System.Drawing.Point(0, 0);
+            this.progressBar.MarqueeAnimationSpeed = 10;
+            this.progressBar.Name = "progressBar";
+            this.progressBar.Size = new System.Drawing.Size(584, 10);
+            this.progressBar.Step = 5;
+            this.progressBar.Style = System.Windows.Forms.ProgressBarStyle.Marquee;
+            this.progressBar.TabIndex = 10;
+            this.progressBar.Visible = false;
             // 
             // testConnectionButton
             // 
             this.testConnectionButton.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            this.testConnectionButton.Location = new System.Drawing.Point(264, 12);
+            this.testConnectionButton.Location = new System.Drawing.Point(314, 12);
             this.testConnectionButton.Name = "testConnectionButton";
             this.testConnectionButton.Size = new System.Drawing.Size(100, 23);
             this.testConnectionButton.TabIndex = 5;
@@ -203,7 +246,7 @@
             // 
             this.connectButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.connectButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.connectButton.Location = new System.Drawing.Point(388, 12);
+            this.connectButton.Location = new System.Drawing.Point(488, 12);
             this.connectButton.Name = "connectButton";
             this.connectButton.Size = new System.Drawing.Size(84, 23);
             this.connectButton.TabIndex = 6;
@@ -219,6 +262,7 @@
             this.duplicateButton.TabIndex = 9;
             this.duplicateButton.Text = "Duplicate";
             this.duplicateButton.UseVisualStyleBackColor = true;
+            this.duplicateButton.Click += new System.EventHandler(this.duplicateButton_Click);
             // 
             // deleteButton
             // 
@@ -228,6 +272,7 @@
             this.deleteButton.TabIndex = 8;
             this.deleteButton.Text = "Delete";
             this.deleteButton.UseVisualStyleBackColor = true;
+            this.deleteButton.Click += new System.EventHandler(this.deleteButton_Click);
             // 
             // addButton
             // 
@@ -237,16 +282,17 @@
             this.addButton.TabIndex = 7;
             this.addButton.Text = "Add";
             this.addButton.UseVisualStyleBackColor = true;
+            this.addButton.Click += new System.EventHandler(this.addButton_Click);
             // 
             // ConnectionForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(484, 261);
+            this.ClientSize = new System.Drawing.Size(584, 261);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.splitContainer1);
             this.MaximizeBox = false;
-            this.MinimumSize = new System.Drawing.Size(500, 300);
+            this.MinimumSize = new System.Drawing.Size(600, 300);
             this.Name = "ConnectionForm";
             this.Text = "Connection Manager";
             this.Load += new System.EventHandler(this.ConnectionForm_Load);
@@ -280,5 +326,8 @@
         private System.Windows.Forms.Button duplicateButton;
         private System.Windows.Forms.Button deleteButton;
         private System.Windows.Forms.Button addButton;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.TextBox nameTextBox;
+        private System.Windows.Forms.ProgressBar progressBar;
     }
 }
