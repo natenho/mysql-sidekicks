@@ -1,0 +1,127 @@
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+
+namespace MySqlSideKicks.Win
+{
+    class SessionPresenter
+    {
+        private ISessionView _view;
+        private IRoutineRepository _routineRepository;
+        private IEnumerable<Routine> _routines;
+        private Routine _currentRoutine;
+
+        private readonly LinkedList<Navigation> _navigationLinkedList = new LinkedList<Navigation>();
+
+        private class Navigation
+        {
+            public Routine Routine { get; set; }
+            public int Position { get; set; }
+        }
+
+        public SessionPresenter(ISessionView view, IRoutineRepository repository)
+        {
+            _view = view;
+            _routineRepository = repository;
+
+            _view.Initialize += Initialize;
+            _view.RoutineSelected += RoutineSelected;
+            _view.Search += Search;
+            _view.DefinitionRequested += DefinitionRequested;
+            _view.NavigateBackward += NavigateBackward;
+        }
+
+        private async Task NavigateBackward()
+        {
+            if(_navigationLinkedList.Count == 0)
+            {
+                return;
+            }
+
+            var previous = _navigationLinkedList.Last;
+            var navigation = previous.Value;
+
+            await OpenRoutine(navigation.Routine, navigation.Position);
+        }
+
+        private async Task DefinitionRequested()
+        {
+            var foundRoutine = _routines.FirstOrDefault(routine => routine.MatchesIdentifier(_view.SelectedIdentifier, _currentRoutine.Schema));
+
+            if (foundRoutine != null && foundRoutine != _currentRoutine)
+            {
+                _navigationLinkedList.AddLast(new Navigation
+                {
+                    Position = _view.CurrentPosition,
+                    Routine = _currentRoutine
+                });
+
+                _view.CanNavigateBackward = true;
+
+                await OpenRoutine(foundRoutine);
+            }
+
+            if(_navigationLinkedList.Count == 0)
+            {
+                _view.CanNavigateBackward = false;
+            }
+        }
+
+        private async Task Initialize()
+        {
+            _routines = await _routineRepository.GetAll();
+
+            _view.CanNavigateBackward = false;
+
+            _view.LoadRoutineList(_routines.ToList());            
+        }
+
+        private async Task RoutineSelected(Routine routine)
+        {
+            if (routine == null)
+            {
+                return;
+            }
+                        
+            _navigationLinkedList.Clear();
+
+            _view.CanNavigateBackward = false;
+
+            await OpenRoutine(routine);
+        }
+
+        private async Task OpenRoutine(Routine routine, int position = 0)
+        {
+            routine.Definition = await _routineRepository.GetFullDefinition(routine);
+
+            _currentRoutine = routine;
+
+            _view.OpenRoutine(routine);
+            _view.GoToPosition(position);
+        }
+
+        private void Search()
+        {
+            var filteredRoutines = Enumerable.Empty<Routine>();
+            var regexEscaptedFilter = Regex.Escape(_view.Filter);
+
+            switch (_view.FilterMode)
+            {
+                case FilterMode.ByName:
+
+                    filteredRoutines = _routines.Where(r => r.MatchesIdentifier(_view.Filter)
+                        || Regex.IsMatch(r.ToString(), regexEscaptedFilter, RegexOptions.IgnoreCase));
+
+                    break;
+
+                case FilterMode.ByDefinition:
+
+                    filteredRoutines = _routines.Where(r => Regex.IsMatch(r.Definition, regexEscaptedFilter, RegexOptions.IgnoreCase));
+                    break;
+            }
+
+            _view.LoadRoutineList(filteredRoutines.ToList());
+        }
+    }
+}

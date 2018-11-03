@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace MySqlSideKicks.Win
 {
-    class RoutineRepository
+    class RoutineRepository : IRoutineRepository
     {
-        private static IEnumerable<Routine> _routines;
+
         private MySqlConnection _connection;
 
         public RoutineRepository(MySqlConnection connection)
@@ -18,43 +18,47 @@ namespace MySqlSideKicks.Win
             _connection = connection;
         }
 
-        public async Task<IEnumerable<Routine>> SearchByName(string name, string defaulSchema = "")
+        public async Task<IEnumerable<Routine>> GetAll()
         {
-            var routines = await GetAll();
-
-            var search = Regex.Escape(name);
-
-            return routines.Where(r => r.MatchesIdentifier(name, defaulSchema) || Regex.IsMatch(r.ToString(), search, RegexOptions.IgnoreCase));
-        }
-
-        public async Task<IEnumerable<Routine>> SearchByDefinition(string text)
-        {
-            var routines = await GetAll();
-
-            var search = Regex.Escape(text);
-
-            return routines.Where(r => Regex.IsMatch(r.Definition, search, RegexOptions.IgnoreCase));
-        }
-
-        private async Task<IEnumerable<Routine>> GetAll()
-        {
-            if (_routines != null)
-            {
-                return _routines;
-            }
-
             try
             {
                 _connection.Open();
-                _routines = await _connection.QueryAsync<Routine>("SELECT ROUTINE_SCHEMA `Schema`, ROUTINE_NAME `Name`, ROUTINE_TYPE `Type`, ROUTINE_DEFINITION `Definition` FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_SCHEMA NOT IN ('sys') ORDER BY ROUTINE_SCHEMA, ROUTINE_NAME");
-
-                return _routines;
+                return await _connection.QueryAsync<Routine>("SELECT ROUTINE_SCHEMA `Schema`, ROUTINE_NAME `Name`, ROUTINE_TYPE `Type`, ROUTINE_DEFINITION `Definition` FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_SCHEMA NOT IN ('sys') ORDER BY ROUTINE_SCHEMA, ROUTINE_NAME");
             }
             finally
             {
                 if (_connection.State == ConnectionState.Open)
                 {
                     _connection.Close();
+                }
+            }
+        }
+
+        public async Task<string> GetFullDefinition(Routine routine)
+        {
+            var command = _connection.CreateCommand();
+
+            try
+            {
+                await _connection.OpenAsync();
+
+                command.CommandText = $"SHOW CREATE {routine.Type} `{routine.Schema}`.`{routine.Name}`";
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    await reader.ReadAsync();
+
+                    var code = reader[$"CREATE {routine.Type}"]
+                        .ToString();
+
+                    return code;
+                }
+            }
+            finally
+            {
+                if (_connection.State == ConnectionState.Open)
+                {
+                    await _connection.CloseAsync();
                 }
             }
         }

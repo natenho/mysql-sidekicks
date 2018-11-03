@@ -2,7 +2,7 @@
 
 namespace MySqlSideKicks.Win
 {
-    class Routine
+    public class Routine
     {
         public string Schema { get; set; }
         public string Name { get; set; }
