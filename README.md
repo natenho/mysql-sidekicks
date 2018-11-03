@@ -9,7 +9,7 @@ This project is a simple tool with a set of features not found on most common My
 
 # Roadmap
 
-  - Adjust Windows Forms structure (use ApplicationContext)
+  - Refactor Windows Forms structure
   - Improve error handling
   - Toolbar (Navigation)
   - Highlight other instances of the selected identifier
