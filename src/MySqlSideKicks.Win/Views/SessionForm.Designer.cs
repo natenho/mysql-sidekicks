@@ -120,6 +120,7 @@
             this.searchBox.Size = new System.Drawing.Size(340, 20);
             this.searchBox.TabIndex = 2;
             this.searchBox.TextChanged += new System.EventHandler(this.SearchFired);
+            this.searchBox.Enter += new System.EventHandler(this.SearchFired);
             // 
             // objectExplorerListBox
             // 
@@ -146,6 +147,7 @@
             this.codeScintilla.TabIndex = 3;
             this.codeScintilla.UseTabs = true;
             this.codeScintilla.DoubleClick += new System.EventHandler<ScintillaNET.DoubleClickEventArgs>(this.codeScintilla_DoubleClick);
+            this.codeScintilla.UpdateUI += new System.EventHandler<ScintillaNET.UpdateUIEventArgs>(this.codeScintilla_UpdateUI);
             this.codeScintilla.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.codeScintilla_KeyPress);
             // 
             // SessionForm

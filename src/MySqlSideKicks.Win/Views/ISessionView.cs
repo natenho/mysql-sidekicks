@@ -11,7 +11,8 @@ namespace MySqlSideKicks.Win
         event Func<Routine, Task> RoutineSelected;
         event Func<Task> DefinitionRequested;
         event Func<Task> NavigateBackward;
-                
+        event Action<string> TextSelected;
+
         string Filter { get; }
         FilterMode FilterMode { get; }
 
@@ -24,5 +25,6 @@ namespace MySqlSideKicks.Win
         void OpenRoutine(Routine routine);
 
         void GoToPosition(int position);
+        void HighlightText(string text);
     }
 }

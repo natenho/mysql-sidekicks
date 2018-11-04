@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -30,6 +31,7 @@ namespace MySqlSideKicks.Win
             _view.Search += Search;
             _view.DefinitionRequested += DefinitionRequested;
             _view.NavigateBackward += NavigateBackward;
+            _view.TextSelected += TextSelected;
         }
 
         private async Task NavigateBackward()
@@ -89,6 +91,8 @@ namespace MySqlSideKicks.Win
             _view.CanNavigateBackward = false;
 
             await OpenRoutine(routine);
+
+            _view.HighlightText(_view.Filter);
         }
 
         private async Task OpenRoutine(Routine routine, int position = 0)
@@ -98,7 +102,7 @@ namespace MySqlSideKicks.Win
             _currentRoutine = routine;
 
             _view.OpenRoutine(routine);
-            _view.GoToPosition(position);
+            _view.GoToPosition(position);            
         }
 
         private void Search()
@@ -122,6 +126,11 @@ namespace MySqlSideKicks.Win
             }
 
             _view.LoadRoutineList(filteredRoutines.ToList());
+        }
+        
+        private void TextSelected(string text)
+        {
+            _view.HighlightText(text);
         }
     }
 }
