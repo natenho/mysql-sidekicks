@@ -12,5 +12,5 @@ before_build:
 build:
   verbosity: minimal
 artifacts:
-- path: '**\bin\$(configuration)'
-  name: MySqlSideKicks
+- path: src\MySqlSideKicks.Win\bin\$(configuration)\
+  name: MySqlSideKicks_$(APPVEYOR_BUILD_VERSION)
