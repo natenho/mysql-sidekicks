@@ -6,12 +6,12 @@ namespace MySqlSideKicks.Win
 {
     interface ISessionView
     {
-        event Func<Task> Initialize;
-        event Action Search;
+        event Func<Task> Initialized;
+        event Action SearchPerformed;
         event Func<Routine, Task> RoutineSelected;
         event Func<Task> DefinitionRequested;
-        event Func<Task> NavigateBackward;
-        event Action<string> TextSelected;
+        event Func<Task> NavigatedBackward;
+        event Action<string> IdentifierActivated;
 
         string Filter { get; }
         FilterMode FilterMode { get; }

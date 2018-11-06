@@ -26,12 +26,12 @@ namespace MySqlSideKicks.Win
             _view = view;
             _routineRepository = repository;
 
-            _view.Initialize += Initialize;
+            _view.Initialized += Initialized;
             _view.RoutineSelected += RoutineSelected;
-            _view.Search += Search;
+            _view.SearchPerformed += SearchPerformed;
             _view.DefinitionRequested += DefinitionRequested;
-            _view.NavigateBackward += NavigateBackward;
-            _view.TextSelected += TextSelected;
+            _view.NavigatedBackward += NavigateBackward;
+            _view.IdentifierActivated += IdentifierActivated;
         }
 
         private async Task NavigateBackward()
@@ -70,7 +70,7 @@ namespace MySqlSideKicks.Win
             }
         }
 
-        private async Task Initialize()
+        private async Task Initialized()
         {
             _routines = await _routineRepository.GetAll();
 
@@ -105,7 +105,7 @@ namespace MySqlSideKicks.Win
             _view.GoToPosition(position);            
         }
 
-        private void Search()
+        private void SearchPerformed()
         {
             var filteredRoutines = Enumerable.Empty<Routine>();
             var regexEscaptedFilter = Regex.Escape(_view.Filter);
@@ -128,9 +128,9 @@ namespace MySqlSideKicks.Win
             _view.LoadRoutineList(filteredRoutines.ToList());
         }
         
-        private void TextSelected(string text)
+        private void IdentifierActivated(string identifier)
         {
-            _view.HighlightText(text);
+            _view.HighlightText(identifier);
         }
     }
 }
