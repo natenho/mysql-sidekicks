@@ -29,7 +29,7 @@ namespace MySqlSideKicks.Win
             _view.Initialized += Initialized;
             _view.RoutineSelected += RoutineSelected;
             _view.SearchPerformed += SearchPerformed;
-            _view.DefinitionRequested += DefinitionRequested;
+            _view.NavigationRequested += NavigationRequested;
             _view.NavigatedBackward += NavigateBackward;
             _view.IdentifierActivated += IdentifierActivated;
         }
@@ -47,8 +47,13 @@ namespace MySqlSideKicks.Win
             await OpenRoutine(navigation.Routine, navigation.Position);
         }
 
-        private async Task DefinitionRequested()
+        private async Task NavigationRequested(string identifier)
         {
+            if(string.IsNullOrWhiteSpace(identifier))
+            {
+                return;
+            }
+
             var foundRoutine = _routines.FirstOrDefault(routine => routine.MatchesIdentifier(_view.SelectedIdentifier, _currentRoutine.Schema));
 
             if (foundRoutine != null && foundRoutine != _currentRoutine)

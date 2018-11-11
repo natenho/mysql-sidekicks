@@ -35,7 +35,7 @@
             this.filterByName = new System.Windows.Forms.RadioButton();
             this.searchBox = new System.Windows.Forms.TextBox();
             this.objectExplorerListBox = new System.Windows.Forms.ListBox();
-            this.codeScintilla = new ScintillaNET.Scintilla();
+            this.editor = new ScintillaNET.Scintilla();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
             this.splitContainer.Panel1.SuspendLayout();
             this.splitContainer.Panel2.SuspendLayout();
@@ -58,7 +58,7 @@
             // 
             // splitContainer.Panel2
             // 
-            this.splitContainer.Panel2.Controls.Add(this.codeScintilla);
+            this.splitContainer.Panel2.Controls.Add(this.editor);
             this.splitContainer.Size = new System.Drawing.Size(1021, 686);
             this.splitContainer.SplitterDistance = 340;
             this.splitContainer.TabIndex = 3;
@@ -136,19 +136,21 @@
             this.objectExplorerListBox.SelectedIndexChanged += new System.EventHandler(this.objectExplorerListBox_SelectedIndexChanged);
             this.objectExplorerListBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.objectExplorerListBox_KeyPress);
             // 
-            // codeScintilla
+            // editor
             // 
-            this.codeScintilla.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.codeScintilla.IndentationGuides = ScintillaNET.IndentView.Real;
-            this.codeScintilla.Lexer = ScintillaNET.Lexer.Sql;
-            this.codeScintilla.Location = new System.Drawing.Point(0, 0);
-            this.codeScintilla.Name = "codeScintilla";
-            this.codeScintilla.Size = new System.Drawing.Size(677, 686);
-            this.codeScintilla.TabIndex = 3;
-            this.codeScintilla.UseTabs = true;
-            this.codeScintilla.DoubleClick += new System.EventHandler<ScintillaNET.DoubleClickEventArgs>(this.codeScintilla_DoubleClick);
-            this.codeScintilla.UpdateUI += new System.EventHandler<ScintillaNET.UpdateUIEventArgs>(this.codeScintilla_UpdateUI);
-            this.codeScintilla.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.codeScintilla_KeyPress);
+            this.editor.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.editor.IndentationGuides = ScintillaNET.IndentView.Real;
+            this.editor.Lexer = ScintillaNET.Lexer.Sql;
+            this.editor.Location = new System.Drawing.Point(0, 0);
+            this.editor.Name = "editor";
+            this.editor.Size = new System.Drawing.Size(677, 686);
+            this.editor.TabIndex = 3;
+            this.editor.UseTabs = true;
+            this.editor.HotspotClick += new System.EventHandler<ScintillaNET.HotspotClickEventArgs>(this.editor_HotspotClick);
+            this.editor.UpdateUI += new System.EventHandler<ScintillaNET.UpdateUIEventArgs>(this.editor_UpdateUI);
+            this.editor.KeyDown += new System.Windows.Forms.KeyEventHandler(this.editor_KeyDown);
+            this.editor.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.editor_KeyPress);
+            this.editor.MouseMove += new System.Windows.Forms.MouseEventHandler(this.editor_MouseMove);
             // 
             // SessionForm
             // 
@@ -176,7 +178,7 @@
 
         private System.Windows.Forms.SplitContainer splitContainer;
         private System.Windows.Forms.ListBox objectExplorerListBox;
-        private ScintillaNET.Scintilla codeScintilla;
+        private ScintillaNET.Scintilla editor;
         private System.Windows.Forms.TextBox searchBox;
         private System.Windows.Forms.GroupBox filterOption;
         private System.Windows.Forms.RadioButton filterByDefinition;

@@ -9,7 +9,7 @@ namespace MySqlSideKicks.Win
         event Func<Task> Initialized;
         event Action SearchPerformed;
         event Func<Routine, Task> RoutineSelected;
-        event Func<Task> DefinitionRequested;
+        event Func<string, Task> NavigationRequested;
         event Func<Task> NavigatedBackward;
         event Action<string> IdentifierActivated;
 
