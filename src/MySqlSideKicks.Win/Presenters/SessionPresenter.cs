@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -36,7 +35,7 @@ namespace MySqlSideKicks.Win
 
         private async Task NavigateBackward()
         {
-            if(_navigationLinkedList.Count == 0)
+            if (_navigationLinkedList.Count == 0)
             {
                 return;
             }
@@ -49,12 +48,12 @@ namespace MySqlSideKicks.Win
 
         private async Task NavigationRequested(string identifier)
         {
-            if(string.IsNullOrWhiteSpace(identifier))
+            if (string.IsNullOrWhiteSpace(identifier))
             {
                 return;
             }
 
-            var foundRoutine = _routines.FirstOrDefault(routine => routine.MatchesIdentifier(_view.SelectedIdentifier, _currentRoutine.Schema));
+            var foundRoutine = _routines.FirstOrDefault(routine => routine.MatchesIdentifier(identifier, _currentRoutine.Schema));
 
             if (foundRoutine != null && foundRoutine != _currentRoutine)
             {
@@ -64,14 +63,14 @@ namespace MySqlSideKicks.Win
                     Routine = _currentRoutine
                 });
 
-                _view.CanNavigateBackward = true;
+                _view.NavigateBackwardAllowed = true;
 
                 await OpenRoutine(foundRoutine);
             }
 
-            if(_navigationLinkedList.Count == 0)
+            if (_navigationLinkedList.Count == 0)
             {
-                _view.CanNavigateBackward = false;
+                _view.NavigateBackwardAllowed = false;
             }
         }
 
@@ -79,9 +78,9 @@ namespace MySqlSideKicks.Win
         {
             _routines = await _routineRepository.GetAll();
 
-            _view.CanNavigateBackward = false;
+            _view.NavigateBackwardAllowed = false;
 
-            _view.LoadRoutineList(_routines.ToList());            
+            _view.LoadRoutineList(_routines.ToList());
         }
 
         private async Task RoutineSelected(Routine routine)
@@ -90,10 +89,10 @@ namespace MySqlSideKicks.Win
             {
                 return;
             }
-                        
+
             _navigationLinkedList.Clear();
 
-            _view.CanNavigateBackward = false;
+            _view.NavigateBackwardAllowed = false;
 
             await OpenRoutine(routine);
 
@@ -107,7 +106,7 @@ namespace MySqlSideKicks.Win
             _currentRoutine = routine;
 
             _view.OpenRoutine(routine);
-            _view.GoToPosition(position);            
+            _view.GoToPosition(position);
         }
 
         private void SearchPerformed()
@@ -132,7 +131,7 @@ namespace MySqlSideKicks.Win
 
             _view.LoadRoutineList(filteredRoutines.ToList());
         }
-        
+
         private void IdentifierActivated(string identifier)
         {
             _view.HighlightText(identifier);

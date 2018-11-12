@@ -17,9 +17,8 @@ namespace MySqlSideKicks.Win
         FilterMode FilterMode { get; }
 
         int CurrentPosition { get; }
-        string SelectedIdentifier { get; }
 
-        bool CanNavigateBackward { get; set; }
+        bool NavigateBackwardAllowed { get; set; }
         
         void LoadRoutineList(IList<Routine> routines);
         void OpenRoutine(Routine routine);

@@ -134,7 +134,7 @@ namespace MySqlSideKicks.Win
 
             connectionList.DataSource = new BindingList<ConnectionViewModel>(connections);
 
-            previouslySelected = connections.FirstOrDefault(c => c.Guid == previouslySelected.Guid);
+            previouslySelected = connections.FirstOrDefault(c => c.Guid == previouslySelected?.Guid);
 
             if (previouslySelected != null)
             {

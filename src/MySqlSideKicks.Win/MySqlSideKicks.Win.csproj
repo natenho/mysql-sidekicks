@@ -80,6 +80,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extensions\ScintillaConstants.cs" />
+    <Compile Include="Extensions\ScintillaExtensions.cs" />
     <Compile Include="Views\ConnectionViewModel.cs" />
     <Compile Include="Models\Connection.cs" />
     <Compile Include="Presenters\ConnectionPresenter.cs" />

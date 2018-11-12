@@ -96,7 +96,7 @@
             this.filterByDefinition.TabIndex = 0;
             this.filterByDefinition.Text = "Definition";
             this.filterByDefinition.UseVisualStyleBackColor = true;
-            this.filterByDefinition.CheckedChanged += new System.EventHandler(this.SearchFired);
+            this.filterByDefinition.CheckedChanged += new System.EventHandler(this.control_SearchPerformed);
             // 
             // filterByName
             // 
@@ -109,7 +109,7 @@
             this.filterByName.TabStop = true;
             this.filterByName.Text = "Name";
             this.filterByName.UseVisualStyleBackColor = true;
-            this.filterByName.CheckedChanged += new System.EventHandler(this.SearchFired);
+            this.filterByName.CheckedChanged += new System.EventHandler(this.control_SearchPerformed);
             // 
             // searchBox
             // 
@@ -119,8 +119,8 @@
             this.searchBox.Name = "searchBox";
             this.searchBox.Size = new System.Drawing.Size(340, 20);
             this.searchBox.TabIndex = 2;
-            this.searchBox.TextChanged += new System.EventHandler(this.SearchFired);
-            this.searchBox.Enter += new System.EventHandler(this.SearchFired);
+            this.searchBox.TextChanged += new System.EventHandler(this.control_SearchPerformed);
+            this.searchBox.Enter += new System.EventHandler(this.control_SearchPerformed);
             // 
             // objectExplorerListBox
             // 
