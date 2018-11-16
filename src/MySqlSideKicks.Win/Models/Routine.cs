@@ -13,7 +13,7 @@ namespace MySqlSideKicks.Win
         {
             return $"{Schema}.{Name}";
         }
-
+               
         public bool MatchesIdentifier(string identifier, string defaultSchema = "")
         {
             var sanitizedIdentifier = SanitizeIdentifier(identifier);

@@ -27,7 +27,9 @@ namespace MySqlSideKicks.Win
 
         const int ScintilaNotFound = -1;
 
-        private string _routineKeywords;        
+        private string _routineKeywords;
+
+        private bool _isSearching;
 
         public SessionForm()
         {
@@ -39,6 +41,8 @@ namespace MySqlSideKicks.Win
             Cursor = Cursors.WaitCursor;
             objectExplorerListBox.SuspendLayout();
 
+            var selectedRoutine = objectExplorerListBox.SelectedItem as Routine;
+
             objectExplorerListBox.DataSource = routines;
 
             //TODO Move to presenter
@@ -48,6 +52,9 @@ namespace MySqlSideKicks.Win
             _routineKeywords = string.Join(" ", routineKeywordsBare, routineKeywordsWithSchema, routineKeywordsWithSchemaFullyQualified);
                         
             editor.SetKeywords(KeywordSet.User2, _routineKeywords);
+
+            var reSelectedRoutine = routines.FirstOrDefault(r => r.ToString().EqualsIgnoreCase(selectedRoutine?.ToString()));
+            objectExplorerListBox.SelectedItem = reSelectedRoutine;
 
             objectExplorerListBox.ResumeLayout();
             Cursor = Cursors.Default;
@@ -80,7 +87,11 @@ namespace MySqlSideKicks.Win
 
         private void control_SearchPerformed(object sender, EventArgs e)
         {
+            _isSearching = true;
+
             SearchPerformed?.Invoke();
+
+            _isSearching = false;
         }
 
         private async void MainForm_Load(object sender, EventArgs e)
@@ -100,6 +111,11 @@ namespace MySqlSideKicks.Win
 
         private async void objectExplorerListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if(_isSearching)
+            {
+                return;
+            }
+
             await RoutineSelected?.Invoke(objectExplorerListBox.SelectedItem as Routine);
         }
 
