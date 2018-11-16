@@ -37,6 +37,7 @@ namespace MySqlSideKicks.Win
         {
             if (_navigationLinkedList.Count == 0)
             {
+                _view.NavigateBackwardAllowed = true;
                 return;
             }
 
