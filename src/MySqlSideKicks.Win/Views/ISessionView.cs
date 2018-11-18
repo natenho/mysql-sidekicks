@@ -11,6 +11,7 @@ namespace MySqlSideKicks.Win
         event Func<Routine, Task> RoutineSelected;
         event Func<string, Task> NavigationRequested;
         event Func<Task> NavigatedBackward;
+        event Func<Task> NavigatedForward;
         event Action<string> IdentifierActivated;
 
         string Filter { get; }
@@ -19,7 +20,8 @@ namespace MySqlSideKicks.Win
         int CurrentPosition { get; }
 
         bool NavigateBackwardAllowed { get; set; }
-        
+        bool NavigateForwardAllowed { get; set; }
+
         void LoadRoutineList(IList<Routine> routines);
         void OpenRoutine(Routine routine);
 

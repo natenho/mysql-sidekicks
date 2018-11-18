@@ -28,30 +28,33 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SessionForm));
             this.splitContainer = new System.Windows.Forms.SplitContainer();
-            this.navigateBackwardButton = new System.Windows.Forms.Button();
             this.filterOption = new System.Windows.Forms.GroupBox();
             this.filterByDefinition = new System.Windows.Forms.RadioButton();
             this.filterByName = new System.Windows.Forms.RadioButton();
             this.searchBox = new System.Windows.Forms.TextBox();
             this.objectExplorerListBox = new System.Windows.Forms.ListBox();
             this.editor = new ScintillaNET.Scintilla();
+            this.toolStrip = new System.Windows.Forms.ToolStrip();
+            this.navigateForwardToolStripButton = new System.Windows.Forms.ToolStripButton();
+            this.navigateBackwardToolStripButton = new System.Windows.Forms.ToolStripButton();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
             this.splitContainer.Panel1.SuspendLayout();
             this.splitContainer.Panel2.SuspendLayout();
             this.splitContainer.SuspendLayout();
             this.filterOption.SuspendLayout();
+            this.toolStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // splitContainer
             // 
             this.splitContainer.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer.Location = new System.Drawing.Point(0, 0);
+            this.splitContainer.Location = new System.Drawing.Point(0, 25);
             this.splitContainer.Name = "splitContainer";
             // 
             // splitContainer.Panel1
             // 
-            this.splitContainer.Panel1.Controls.Add(this.navigateBackwardButton);
             this.splitContainer.Panel1.Controls.Add(this.filterOption);
             this.splitContainer.Panel1.Controls.Add(this.searchBox);
             this.splitContainer.Panel1.Controls.Add(this.objectExplorerListBox);
@@ -59,22 +62,10 @@
             // splitContainer.Panel2
             // 
             this.splitContainer.Panel2.Controls.Add(this.editor);
-            this.splitContainer.Size = new System.Drawing.Size(1021, 686);
+            this.splitContainer.Size = new System.Drawing.Size(1021, 661);
             this.splitContainer.SplitterDistance = 340;
             this.splitContainer.TabIndex = 3;
             this.splitContainer.TabStop = false;
-            // 
-            // navigateBackwardButton
-            // 
-            this.navigateBackwardButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.navigateBackwardButton.Enabled = false;
-            this.navigateBackwardButton.Location = new System.Drawing.Point(169, 36);
-            this.navigateBackwardButton.Name = "navigateBackwardButton";
-            this.navigateBackwardButton.Size = new System.Drawing.Size(157, 37);
-            this.navigateBackwardButton.TabIndex = 4;
-            this.navigateBackwardButton.Text = "Previous";
-            this.navigateBackwardButton.UseVisualStyleBackColor = true;
-            this.navigateBackwardButton.Click += new System.EventHandler(this.navigateBackwardButton_Click);
             // 
             // filterOption
             // 
@@ -131,19 +122,21 @@
             this.objectExplorerListBox.FormattingEnabled = true;
             this.objectExplorerListBox.Location = new System.Drawing.Point(0, 84);
             this.objectExplorerListBox.Name = "objectExplorerListBox";
-            this.objectExplorerListBox.Size = new System.Drawing.Size(340, 602);
+            this.objectExplorerListBox.Size = new System.Drawing.Size(340, 576);
             this.objectExplorerListBox.TabIndex = 1;
             this.objectExplorerListBox.SelectedIndexChanged += new System.EventHandler(this.objectExplorerListBox_SelectedIndexChanged);
             this.objectExplorerListBox.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.objectExplorerListBox_KeyPress);
             // 
             // editor
             // 
+            this.editor.CaretLineBackColor = System.Drawing.Color.Ivory;
+            this.editor.CaretLineVisible = true;
             this.editor.Dock = System.Windows.Forms.DockStyle.Fill;
             this.editor.IndentationGuides = ScintillaNET.IndentView.Real;
             this.editor.Lexer = ScintillaNET.Lexer.Sql;
             this.editor.Location = new System.Drawing.Point(0, 0);
             this.editor.Name = "editor";
-            this.editor.Size = new System.Drawing.Size(677, 686);
+            this.editor.Size = new System.Drawing.Size(677, 661);
             this.editor.TabIndex = 3;
             this.editor.UseTabs = true;
             this.editor.HotspotClick += new System.EventHandler<ScintillaNET.HotspotClickEventArgs>(this.editor_HotspotClick);
@@ -152,12 +145,46 @@
             this.editor.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.editor_KeyPress);
             this.editor.MouseMove += new System.Windows.Forms.MouseEventHandler(this.editor_MouseMove);
             // 
+            // toolStrip
+            // 
+            this.toolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.navigateBackwardToolStripButton,
+            this.navigateForwardToolStripButton});
+            this.toolStrip.Location = new System.Drawing.Point(0, 0);
+            this.toolStrip.Name = "toolStrip";
+            this.toolStrip.Size = new System.Drawing.Size(1021, 25);
+            this.toolStrip.TabIndex = 5;
+            this.toolStrip.Text = "toolStrip1";
+            // 
+            // navigateForwardToolStripButton
+            // 
+            this.navigateForwardToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.navigateForwardToolStripButton.Enabled = false;
+            this.navigateForwardToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("navigateForwardToolStripButton.Image")));
+            this.navigateForwardToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.navigateForwardToolStripButton.Name = "navigateForwardToolStripButton";
+            this.navigateForwardToolStripButton.Size = new System.Drawing.Size(23, 22);
+            this.navigateForwardToolStripButton.Text = "Navigate Forward";
+            this.navigateForwardToolStripButton.Click += new System.EventHandler(this.navigateForwardToolStripButton_Click);
+            // 
+            // navigateBackwardToolStripButton
+            // 
+            this.navigateBackwardToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.navigateBackwardToolStripButton.Enabled = false;
+            this.navigateBackwardToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("navigateBackwardToolStripButton.Image")));
+            this.navigateBackwardToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.navigateBackwardToolStripButton.Name = "navigateBackwardToolStripButton";
+            this.navigateBackwardToolStripButton.Size = new System.Drawing.Size(23, 22);
+            this.navigateBackwardToolStripButton.Text = "Navigate Backward";
+            this.navigateBackwardToolStripButton.Click += new System.EventHandler(this.navigateBackwardSplitButton_Click);
+            // 
             // SessionForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1021, 686);
             this.Controls.Add(this.splitContainer);
+            this.Controls.Add(this.toolStrip);
             this.KeyPreview = true;
             this.Name = "SessionForm";
             this.Text = "MySqlSideKicks";
@@ -170,7 +197,10 @@
             this.splitContainer.ResumeLayout(false);
             this.filterOption.ResumeLayout(false);
             this.filterOption.PerformLayout();
+            this.toolStrip.ResumeLayout(false);
+            this.toolStrip.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -183,7 +213,9 @@
         private System.Windows.Forms.GroupBox filterOption;
         private System.Windows.Forms.RadioButton filterByDefinition;
         private System.Windows.Forms.RadioButton filterByName;
-        private System.Windows.Forms.Button navigateBackwardButton;
+        private System.Windows.Forms.ToolStrip toolStrip;
+        private System.Windows.Forms.ToolStripButton navigateForwardToolStripButton;
+        private System.Windows.Forms.ToolStripButton navigateBackwardToolStripButton;
     }
 }
 

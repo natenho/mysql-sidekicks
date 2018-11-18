@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -13,7 +14,9 @@ namespace MySqlSideKicks.Win
         private Routine _currentRoutine;
 
         private readonly LinkedList<Navigation> _navigationLinkedList = new LinkedList<Navigation>();
+        private LinkedListNode<Navigation> _currentNavigationNode;
 
+        [DebuggerDisplay("{Routine.ToString()}@{Position}")]
         private class Navigation
         {
             public Routine Routine { get; set; }
@@ -30,21 +33,18 @@ namespace MySqlSideKicks.Win
             _view.SearchPerformed += SearchPerformed;
             _view.NavigationRequested += NavigationRequested;
             _view.NavigatedBackward += NavigateBackward;
+            _view.NavigatedForward += NavigateForward;
             _view.IdentifierActivated += IdentifierActivated;
         }
 
         private async Task NavigateBackward()
         {
-            if (_navigationLinkedList.Count == 0)
-            {
-                _view.NavigateBackwardAllowed = true;
-                return;
-            }
+            await NavigateToHistoryItem(_currentNavigationNode.Previous);
+        }
 
-            var previous = _navigationLinkedList.Last;
-            var navigation = previous.Value;
-
-            await OpenRoutine(navigation.Routine, navigation.Position);
+        private async Task NavigateForward()
+        {
+            await NavigateToHistoryItem(_currentNavigationNode.Next);
         }
 
         private async Task NavigationRequested(string identifier)
@@ -58,20 +58,7 @@ namespace MySqlSideKicks.Win
 
             if (foundRoutine != null && foundRoutine != _currentRoutine)
             {
-                _navigationLinkedList.AddLast(new Navigation
-                {
-                    Position = _view.CurrentPosition,
-                    Routine = _currentRoutine
-                });
-
-                _view.NavigateBackwardAllowed = true;
-
-                await OpenRoutine(foundRoutine);
-            }
-
-            if (_navigationLinkedList.Count == 0)
-            {
-                _view.NavigateBackwardAllowed = false;
+                await NavigateToSpecificRoutine(foundRoutine);
             }
         }
 
@@ -80,6 +67,7 @@ namespace MySqlSideKicks.Win
             _routines = await _routineRepository.GetAll();
 
             _view.NavigateBackwardAllowed = false;
+            _view.NavigateForwardAllowed = false;
 
             _view.LoadRoutineList(_routines.ToList());
         }
@@ -91,23 +79,57 @@ namespace MySqlSideKicks.Win
                 return;
             }
 
-            _navigationLinkedList.Clear();
-
-            _view.NavigateBackwardAllowed = false;
-
-            await OpenRoutine(routine);
+            await NavigateToSpecificRoutine(routine);
 
             _view.HighlightText(_view.Filter);
         }
 
-        private async Task OpenRoutine(Routine routine, int position = 0)
+        private async Task NavigateToHistoryItem(LinkedListNode<Navigation> navigationNode)
+        {
+            if(navigationNode == null)
+            {
+                return;
+            }
+
+            var navigation = navigationNode.Value;
+
+            _currentNavigationNode = navigationNode;
+
+            await OpenRoutine(navigation.Routine);
+
+            _view.GoToPosition(navigation.Position);
+        }
+
+        private async Task NavigateToSpecificRoutine(Routine routine)
+        {
+            if (_currentNavigationNode != null)
+            {
+                _currentNavigationNode.Value.Position = _view.CurrentPosition;
+            }
+
+            while (_currentNavigationNode?.Next != null)
+            {
+                _navigationLinkedList.Remove(_currentNavigationNode.Next);
+            }
+
+            if (_currentRoutine != routine)
+            {
+                _currentNavigationNode = _navigationLinkedList.AddLast(new Navigation { Routine = routine });
+            }
+
+            await OpenRoutine(routine);
+        }
+
+        private async Task OpenRoutine(Routine routine)
         {
             routine.Definition = await _routineRepository.GetFullDefinition(routine);
 
             _currentRoutine = routine;
 
             _view.OpenRoutine(routine);
-            _view.GoToPosition(position);
+
+            _view.NavigateForwardAllowed = _currentNavigationNode.Next != null;
+            _view.NavigateBackwardAllowed = _currentNavigationNode.Previous != null;
         }
 
         private void SearchPerformed()

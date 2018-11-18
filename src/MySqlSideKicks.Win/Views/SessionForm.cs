@@ -1,8 +1,6 @@
 ﻿using ScintillaNET;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -18,23 +16,26 @@ namespace MySqlSideKicks.Win
         public event Func<string, Task> NavigationRequested;
         public event Func<Task> NavigatedBackward;
         public event Action<string> IdentifierActivated;
+        public event Func<Task> NavigatedForward;
 
         public string Filter => searchBox.Text;
         public FilterMode FilterMode => filterByDefinition.Checked ? FilterMode.ByDefinition : FilterMode.ByName;
 
         public int CurrentPosition => editor.CurrentPosition;
-        public bool NavigateBackwardAllowed { get => navigateBackwardButton.Enabled; set => navigateBackwardButton.Enabled = value; }
+        public bool NavigateBackwardAllowed { get => navigateBackwardToolStripButton.Enabled; set => navigateBackwardToolStripButton.Enabled = value; }
+        public bool NavigateForwardAllowed { get => navigateForwardToolStripButton.Enabled; set => navigateForwardToolStripButton.Enabled = value; }
 
         const int ScintilaNotFound = -1;
 
-        private string _routineKeywords;
+        private readonly HashSet<string> _routineHashSet = new HashSet<string>();
 
         private bool _isSearching;
+        private bool _isOpeningRoutine;
 
         public SessionForm()
         {
-            InitializeComponent();                   
-        }        
+            InitializeComponent();
+        }
 
         public void LoadRoutineList(IList<Routine> routines)
         {
@@ -46,15 +47,20 @@ namespace MySqlSideKicks.Win
             objectExplorerListBox.DataSource = routines;
 
             //TODO Move to presenter
-            var routineKeywordsBare = string.Join(" ", routines.Select(r => r.Name.ToLower()));
-            var routineKeywordsWithSchema = string.Join(" ", routines.Select(r => $"{r.Schema.ToLower()}.{r.Name.ToLower()}"));
-            var routineKeywordsWithSchemaFullyQualified = string.Join(" ", routines.Select(r => $"`{r.Schema.ToLower()}`.`{r.Name.ToLower()}`"));
-            _routineKeywords = string.Join(" ", routineKeywordsBare, routineKeywordsWithSchema, routineKeywordsWithSchemaFullyQualified);
-                        
-            editor.SetKeywords(KeywordSet.User2, _routineKeywords);
+            foreach (var routine in routines)
+            {
+                _routineHashSet.Add(routine.Name);
+                _routineHashSet.Add(routine.FullName);
+                _routineHashSet.Add(routine.QuotedFullName);
+            }
 
-            var reSelectedRoutine = routines.FirstOrDefault(r => r.ToString().EqualsIgnoreCase(selectedRoutine?.ToString()));
-            objectExplorerListBox.SelectedItem = reSelectedRoutine;
+            editor.SetKeywords(KeywordSet.User2, string.Join(" ", _routineHashSet).ToLower());
+
+            var reSelectedRoutine = routines.FirstOrDefault(r => r.MatchesIdentifier(selectedRoutine?.ToString()));
+            if (reSelectedRoutine != null)
+            {
+                objectExplorerListBox.SelectedItem = reSelectedRoutine;
+            }
 
             objectExplorerListBox.ResumeLayout();
             Cursor = Cursors.Default;
@@ -62,6 +68,8 @@ namespace MySqlSideKicks.Win
 
         public void OpenRoutine(Routine routine)
         {
+            _isOpeningRoutine = true;
+
             Cursor = Cursors.WaitCursor;
             editor.SuspendLayout();
 
@@ -69,14 +77,24 @@ namespace MySqlSideKicks.Win
 
             editor.Text = code;
 
+            editor.Focus();
+
+            objectExplorerListBox.SelectedItem = routine;
+
             editor.ResumeLayout();
             Cursor = Cursors.Default;
+
+            _isOpeningRoutine = false;
         }
 
         public void GoToPosition(int position)
         {
             editor.SelectionStart = position;
             editor.SelectionEnd = position;
+
+            var identifier = editor.GetWordFromPosition(editor.CurrentPosition);
+
+            IdentifierActivated?.Invoke(identifier);
         }
 
         private static string FixLexerCompatibility(string code)
@@ -98,7 +116,7 @@ namespace MySqlSideKicks.Win
         {
             editor.InitializeMySqlSyntaxHighlighting();
 
-            await Initialized?.Invoke();                    
+            await Initialized?.Invoke();
         }
 
         private async void MainForm_KeyDown(object sender, KeyEventArgs e)
@@ -107,11 +125,18 @@ namespace MySqlSideKicks.Win
             {
                 await NavigatedBackward?.Invoke();
             }
+
+            if(e.Control && e.KeyCode == Keys.F12)
+            {
+                var identifier = editor.GetWordFromPosition(editor.CurrentPosition);
+
+                await NavigationRequested?.Invoke(identifier);
+            }
         }
 
         private async void objectExplorerListBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if(_isSearching)
+            if (_isSearching || _isOpeningRoutine)
             {
                 return;
             }
@@ -150,7 +175,7 @@ namespace MySqlSideKicks.Win
         }
 
         private async void editor_HotspotClick(object sender, HotspotClickEventArgs e)
-        {            
+        {
             var isControlKeyDown = (e.Modifiers & Keys.Control) != 0;
 
             var identifier = editor.GetWordFromPosition(e.Position);
@@ -173,9 +198,14 @@ namespace MySqlSideKicks.Win
             }
         }
 
-        private async void navigateBackwardButton_Click(object sender, EventArgs e)
+        private async void navigateBackwardSplitButton_Click(object sender, EventArgs e)
         {
             await NavigatedBackward?.Invoke();
+        }
+
+        private async void navigateForwardToolStripButton_Click(object sender, EventArgs e)
+        {
+            await NavigatedForward?.Invoke();
         }
 
         public void HighlightText(string text)
