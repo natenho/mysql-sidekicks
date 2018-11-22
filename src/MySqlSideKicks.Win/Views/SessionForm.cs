@@ -1,4 +1,5 @@
 ﻿using ScintillaNET;
+using ScintillaNET_FindReplaceDialog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,9 +33,56 @@ namespace MySqlSideKicks.Win
         private bool _isSearching;
         private bool _isOpeningRoutine;
 
+        private FindReplace myFindReplace;
+
         public SessionForm()
         {
             InitializeComponent();
+
+            myFindReplace = new FindReplace(editor); // For WinForms
+
+            myFindReplace.KeyPressed += MyFindReplace_KeyPressed;
+            editor.KeyDown += Editor_KeyDown;
+        }
+
+        private void Editor_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Control && e.KeyCode == Keys.F)
+            {
+                myFindReplace.ShowFind();
+                e.SuppressKeyPress = true;
+            }
+            else if (e.Shift && e.KeyCode == Keys.F3)
+            {
+                myFindReplace.Window.FindPrevious();
+                e.SuppressKeyPress = true;
+            }
+            else if (e.KeyCode == Keys.F3)
+            {
+                myFindReplace.Window.FindNext();
+                e.SuppressKeyPress = true;
+            }
+            else if (e.Control && e.KeyCode == Keys.H)
+            {
+                myFindReplace.ShowReplace();
+                e.SuppressKeyPress = true;
+            }
+            else if (e.Control && e.KeyCode == Keys.I)
+            {
+                myFindReplace.ShowIncrementalSearch();
+                e.SuppressKeyPress = true;
+            }
+            else if (e.Control && e.KeyCode == Keys.G)
+            {
+                GoTo MyGoTo = new GoTo((ScintillaNET.Scintilla)sender);
+                MyGoTo.ShowGoToDialog();
+                e.SuppressKeyPress = true;
+            }
+        }
+
+        private void MyFindReplace_KeyPressed(object sender, KeyEventArgs e)
+        {
+            editor_KeyDown(sender, e);
         }
 
         public void LoadRoutineList(IList<Routine> routines)
@@ -126,7 +174,7 @@ namespace MySqlSideKicks.Win
                 await NavigatedBackward?.Invoke();
             }
 
-            if(e.Control && e.KeyCode == Keys.F12)
+            if (e.Control && e.KeyCode == Keys.F12)
             {
                 var identifier = editor.GetWordFromPosition(editor.CurrentPosition);
 
