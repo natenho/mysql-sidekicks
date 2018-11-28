@@ -9,7 +9,4 @@ This project is a simple GUI tool with a set of features not found on most commo
 
 # Roadmap
 
-  - Improve error handling
-  - Navigation toolbar
-  - Find box in code window
-  - Custom MySQL Lexer to improve syntax highlighting
+  - Please refer to the "Issues" page for upcoming features
