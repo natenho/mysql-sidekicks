@@ -13,3 +13,7 @@ This project is a simple GUI tool with a set of features not found on most commo
   - Navigation toolbar
   - Find box in code window
   - Custom MySQL Lexer to improve syntax highlighting
+  - Move roadmap to the issues
+  - Some kind of update notification
+  - Save feature
+  - Feature to edit other database objects (tables, views, triggers, etc)
