@@ -56,7 +56,7 @@ namespace MySqlSideKicks.Win
 
             editor.SetKeywords(KeywordSet.User2, string.Join(" ", _routineHashSet).ToLower());
 
-            var reSelectedRoutine = routines.FirstOrDefault(r => r.MatchesIdentifier(selectedRoutine?.ToString()));
+            var reSelectedRoutine = routines.FirstOrDefault(r => r.IdentifierMatches(selectedRoutine?.ToString()));
             if (reSelectedRoutine != null)
             {
                 objectExplorerListBox.SelectedItem = reSelectedRoutine;
@@ -76,12 +76,12 @@ namespace MySqlSideKicks.Win
             var code = FixLexerCompatibility(routine.Definition);
 
             editor.Text = code;
-
-            editor.Focus();
-
+                       
             objectExplorerListBox.SelectedItem = routine;
-
+                        
             editor.ResumeLayout();
+            editor.Focus();
+                       
             Cursor = Cursors.Default;
 
             _isOpeningRoutine = false;
@@ -89,6 +89,8 @@ namespace MySqlSideKicks.Win
 
         public void GoToPosition(int position)
         {
+            editor.ClearSelections();
+
             editor.SelectionStart = position;
             editor.SelectionEnd = position;
 
@@ -126,7 +128,7 @@ namespace MySqlSideKicks.Win
                 await NavigatedBackward?.Invoke();
             }
 
-            if(e.Control && e.KeyCode == Keys.F12)
+            if (e.Control && e.KeyCode == Keys.F12)
             {
                 var identifier = editor.GetWordFromPosition(editor.CurrentPosition);
 
@@ -176,10 +178,8 @@ namespace MySqlSideKicks.Win
 
         private async void editor_HotspotClick(object sender, HotspotClickEventArgs e)
         {
-            var isControlKeyDown = (e.Modifiers & Keys.Control) != 0;
-
             var identifier = editor.GetWordFromPosition(e.Position);
-
+            
             await NavigationRequested?.Invoke(identifier);
         }
 
@@ -208,23 +208,41 @@ namespace MySqlSideKicks.Win
             await NavigatedForward?.Invoke();
         }
 
-        public void HighlightText(string text)
+        public void HighlightWord(string word)
+        {
+            editor.SearchFlags = SearchFlags.WholeWord;
+
+            HighlightCode(word);
+        }
+
+        public void HighlightPattern(string pattern)
+        {
+            if (!pattern.IsValidRegex())
+            {
+                return;
+            }
+
+            editor.SearchFlags = SearchFlags.Regex;
+
+            HighlightCode(pattern, 1);
+        }
+
+        private void HighlightCode(string input, int minOccurrences = 2)
         {
             editor.IndicatorCurrent = CustomIndicator.Highlight;
             editor.IndicatorClearRange(0, editor.TextLength);
 
-            if (string.IsNullOrWhiteSpace(text))
+            if (string.IsNullOrWhiteSpace(input))
             {
                 return;
             }
 
             editor.TargetStart = 0;
             editor.TargetEnd = editor.TextLength;
-            editor.SearchFlags = SearchFlags.WholeWord;
 
             int occurencesCount = 0;
 
-            while (editor.SearchInTarget(text) != ScintilaNotFound)
+            while (editor.SearchInTarget(input) != ScintilaNotFound)
             {
                 editor.IndicatorFillRange(editor.TargetStart, editor.TargetEnd - editor.TargetStart);
 
@@ -234,7 +252,7 @@ namespace MySqlSideKicks.Win
                 occurencesCount++;
             }
 
-            if (occurencesCount <= 1)
+            if (occurencesCount < minOccurrences)
             {
                 editor.IndicatorClearRange(0, editor.TextLength);
             }

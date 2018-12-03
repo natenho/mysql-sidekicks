@@ -26,6 +26,7 @@ namespace MySqlSideKicks.Win
         void OpenRoutine(Routine routine);
 
         void GoToPosition(int position);
-        void HighlightText(string text);
+        void HighlightWord(string word);
+        void HighlightPattern(string pattern);
     }
 }

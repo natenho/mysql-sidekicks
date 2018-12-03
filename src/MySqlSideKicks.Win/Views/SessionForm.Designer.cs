@@ -37,8 +37,8 @@
             this.objectExplorerListBox = new System.Windows.Forms.ListBox();
             this.editor = new ScintillaNET.Scintilla();
             this.toolStrip = new System.Windows.Forms.ToolStrip();
-            this.navigateForwardToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.navigateBackwardToolStripButton = new System.Windows.Forms.ToolStripButton();
+            this.navigateForwardToolStripButton = new System.Windows.Forms.ToolStripButton();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
             this.splitContainer.Panel1.SuspendLayout();
             this.splitContainer.Panel2.SuspendLayout();
@@ -156,17 +156,6 @@
             this.toolStrip.TabIndex = 5;
             this.toolStrip.Text = "toolStrip1";
             // 
-            // navigateForwardToolStripButton
-            // 
-            this.navigateForwardToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.navigateForwardToolStripButton.Enabled = false;
-            this.navigateForwardToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("navigateForwardToolStripButton.Image")));
-            this.navigateForwardToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.navigateForwardToolStripButton.Name = "navigateForwardToolStripButton";
-            this.navigateForwardToolStripButton.Size = new System.Drawing.Size(23, 22);
-            this.navigateForwardToolStripButton.Text = "Navigate Forward";
-            this.navigateForwardToolStripButton.Click += new System.EventHandler(this.navigateForwardToolStripButton_Click);
-            // 
             // navigateBackwardToolStripButton
             // 
             this.navigateBackwardToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
@@ -177,6 +166,17 @@
             this.navigateBackwardToolStripButton.Size = new System.Drawing.Size(23, 22);
             this.navigateBackwardToolStripButton.Text = "Navigate Backward";
             this.navigateBackwardToolStripButton.Click += new System.EventHandler(this.navigateBackwardSplitButton_Click);
+            // 
+            // navigateForwardToolStripButton
+            // 
+            this.navigateForwardToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.navigateForwardToolStripButton.Enabled = false;
+            this.navigateForwardToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("navigateForwardToolStripButton.Image")));
+            this.navigateForwardToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.navigateForwardToolStripButton.Name = "navigateForwardToolStripButton";
+            this.navigateForwardToolStripButton.Size = new System.Drawing.Size(23, 22);
+            this.navigateForwardToolStripButton.Text = "Navigate Forward";
+            this.navigateForwardToolStripButton.Click += new System.EventHandler(this.navigateForwardToolStripButton_Click);
             // 
             // SessionForm
             // 

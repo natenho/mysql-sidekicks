@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.RegularExpressions;
 
 namespace MySqlSideKicks.Win
 {
@@ -16,25 +17,31 @@ namespace MySqlSideKicks.Win
             return FullName;
         }
                
-        public bool MatchesIdentifier(string identifier, string defaultSchema = "")
+        public bool IdentifierMatches(string pattern, string defaultSchema = "")
         {
-            if(string.IsNullOrWhiteSpace(identifier))
+            if(string.IsNullOrWhiteSpace(pattern))
             {
                 return false;
             }
 
-            var sanitizedIdentifier = SanitizeIdentifier(identifier);
+            var sanitizedPattern = SanitizeIdentifier(pattern);
+            
+            var matchesSameSchema = Schema.EqualsIgnoreCase(defaultSchema) && Name.EqualsIgnoreCase(sanitizedPattern);
+            var matchesAnotherSchema = sanitizedPattern.EqualsIgnoreCase(FullName);
+            var matchesAsRegex = pattern.IsValidRegex() && Regex.IsMatch(FullName, pattern, RegexOptions.IgnoreCase);
 
-            var matchesSameSchema = Schema.EqualsIgnoreCase(defaultSchema) && Name.EqualsIgnoreCase(sanitizedIdentifier);
-            var matchesAnotherSchema = sanitizedIdentifier.EqualsIgnoreCase(ToString());
-
-            return matchesSameSchema || matchesAnotherSchema;
+            return matchesSameSchema || matchesAnotherSchema || matchesAsRegex;
         }
 
         private static string SanitizeIdentifier(string identifier)
         {
             return identifier?.Replace("`", string.Empty)
                 .Trim();
+        }
+
+        internal bool DefinitionMatches(string pattern)
+        {
+            return Regex.IsMatch(Definition, pattern, RegexOptions.IgnoreCase);
         }
     }
 }

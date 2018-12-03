@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace MySqlSideKicks.Win
@@ -54,7 +53,7 @@ namespace MySqlSideKicks.Win
                 return;
             }
 
-            var foundRoutine = _routines.FirstOrDefault(routine => routine.MatchesIdentifier(identifier, _currentRoutine.Schema));
+            var foundRoutine = _routines.FirstOrDefault(routine => routine.IdentifierMatches(identifier, _currentRoutine.Schema));
 
             if (foundRoutine != null && foundRoutine != _currentRoutine)
             {
@@ -79,14 +78,12 @@ namespace MySqlSideKicks.Win
                 return;
             }
 
-            await NavigateToSpecificRoutine(routine);
-
-            _view.HighlightText(_view.Filter);
+            await NavigateToSpecificRoutine(routine);            
         }
 
         private async Task NavigateToHistoryItem(LinkedListNode<Navigation> navigationNode)
         {
-            if(navigationNode == null)
+            if (navigationNode == null)
             {
                 return;
             }
@@ -130,26 +127,31 @@ namespace MySqlSideKicks.Win
 
             _view.NavigateForwardAllowed = _currentNavigationNode.Next != null;
             _view.NavigateBackwardAllowed = _currentNavigationNode.Previous != null;
+
+            if (_view.FilterMode == FilterMode.ByDefinition)
+            {
+                _view.HighlightPattern(_view.Filter);
+            }
         }
 
         private void SearchPerformed()
         {
-            var filteredRoutines = Enumerable.Empty<Routine>();
-            var regexEscaptedFilter = Regex.Escape(_view.Filter);
+            var filteredRoutines = _routines;
 
-            switch (_view.FilterMode)
+            if (!string.IsNullOrWhiteSpace(_view.Filter))
             {
-                case FilterMode.ByName:
+                switch (_view.FilterMode)
+                {
+                    case FilterMode.ByName:
 
-                    filteredRoutines = _routines.Where(r => r.MatchesIdentifier(_view.Filter)
-                        || Regex.IsMatch(r.ToString(), regexEscaptedFilter, RegexOptions.IgnoreCase));
+                        filteredRoutines = _routines.Where(routine => routine.IdentifierMatches(_view.Filter));
+                        break;
 
-                    break;
+                    case FilterMode.ByDefinition:
 
-                case FilterMode.ByDefinition:
-
-                    filteredRoutines = _routines.Where(r => Regex.IsMatch(r.Definition, regexEscaptedFilter, RegexOptions.IgnoreCase));
-                    break;
+                        filteredRoutines = _routines.Where(r => r.DefinitionMatches(_view.Filter));
+                        break;
+                }
             }
 
             _view.LoadRoutineList(filteredRoutines.ToList());
@@ -157,7 +159,7 @@ namespace MySqlSideKicks.Win
 
         private void IdentifierActivated(string identifier)
         {
-            _view.HighlightText(identifier);
+            _view.HighlightWord(identifier);
         }
     }
 }
